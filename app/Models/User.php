@@ -4,6 +4,8 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -41,7 +43,22 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
-            'password' => 'hashed',
+            'password'          => 'hashed',
         ];
+    }
+
+    public function calendars(): HasMany
+    {
+        return $this->hasMany(Calendar::class);
+    }
+
+    public function connectors(): MorphToMany
+    {
+        return $this->morphToMany(Connector::class, 'connectorable')->using(Connectorable::class);
+    }
+
+    public function tags(): MorphToMany
+    {
+        return $this->morphToMany(Connector::class, 'taggable');
     }
 }

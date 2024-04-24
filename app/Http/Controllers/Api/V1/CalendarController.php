@@ -36,15 +36,21 @@ class CalendarController extends Controller
      */
     public function show(Calendar $calendar): CalendarResource
     {
+        $calendar->load('connectors:id');
+
         return new CalendarResource($calendar);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Calendar $calendar)
+    public function update(Request $request, Calendar $calendar): CalendarResource
     {
+        $connectorsIds = $request->get('connectors', []);
 
+        $calendar->connectors()->sync($connectorsIds);
+
+        return CalendarResource::make($calendar);
     }
 
     /**
