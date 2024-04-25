@@ -19,11 +19,6 @@ return new class extends Migration {
             $table->datetime('end_at');
             $table->boolean('is_all_day')->default(true);
             $table->uuidMorphs('eventable');
-            $table->foreignIdFor(User::class)
-                ->nullable()
-                ->constrained()
-                ->cascadeOnUpdate()
-                ->cascadeOnDelete();
             $table->timestamps();
             $table->softDeletes();
         });

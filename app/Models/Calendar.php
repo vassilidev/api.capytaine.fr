@@ -33,7 +33,8 @@ class Calendar extends Model
 
     public function connectors(): MorphToMany
     {
-        return $this->morphToMany(Connector::class, 'connectorable')->using(Connectorable::class);
+        return $this->morphToMany(Connector::class, 'connectorable')
+            ->using(Connectorable::class);
     }
 
     public function tags(): MorphToMany

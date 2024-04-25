@@ -31,6 +31,8 @@ class ConnectorSeeder extends Seeder
                 Tag::inRandomOrder()->limit(random_int(1, 3))->get()
             );
 
+            $connector->load('tags');
+
             $connector->tags()->updateExistingPivot(
                 $connector->tags->random()->id,
                 ['is_primary' => true]

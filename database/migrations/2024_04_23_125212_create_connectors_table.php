@@ -14,6 +14,7 @@ return new class extends Migration {
             $table->uuid('id')->index();
             $table->string('name');
             $table->string('color');
+            $table->longText('description')->nullable();
             $table->timestamps();
             $table->softDeletes();
         });

@@ -3,15 +3,27 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Filament\Panel;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Filament\Models\Contracts\HasAvatar;
+use Filament\Models\Contracts\FilamentUser;
 
-class User extends Authenticatable
+class User extends Authenticatable implements FilamentUser, HasAvatar
 {
-    use HasFactory, Notifiable;
+    use HasUuids,
+        HasFactory,
+        Notifiable,
+        SoftDeletes;
+
+    protected $appends = [
+        'avatar'
+    ];
 
     /**
      * The attributes that are mass assignable.
@@ -60,5 +72,25 @@ class User extends Authenticatable
     public function tags(): MorphToMany
     {
         return $this->morphToMany(Connector::class, 'taggable');
+    }
+
+    public function getAvatarAttribute(): string
+    {
+        $params = [
+            'seed' => $this->id,
+            'backgroundColor' => 'FF79C6'
+        ];
+
+        return 'https://api.dicebear.com/8.x/fun-emoji/svg?' . http_build_query($params);
+    }
+
+    public function getFilamentAvatarUrl(): string
+    {
+        return $this->avatar;
+    }
+
+    public function canAccessPanel(Panel $panel): bool
+    {
+        return true;
     }
 }

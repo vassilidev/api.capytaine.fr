@@ -12,6 +12,10 @@ Route::middleware(['auth:sanctum'])->get('/user', function (Request $request) {
     return $request->user();
 });
 
+Route::post('tasks', function () {
+    logger('task result', \request()->all());
+});
+
 Route::group(['prefix' => 'v1', 'middleware' => ['auth:sanctum']], static function () {
     Route::apiResource('calendars', CalendarController::class);
     Route::apiResource('connectors', ConnectorController::class);

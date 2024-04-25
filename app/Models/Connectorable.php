@@ -6,8 +6,6 @@ use Illuminate\Database\Eloquent\Relations\MorphPivot;
 
 class Connectorable extends MorphPivot
 {
-//    public $timestamps = false;
-
     protected $fillable = [
         'connector_id',
         'connectorable_id',

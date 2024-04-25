@@ -21,6 +21,6 @@ class Tag extends Model
 
     public function connectors(): MorphToMany
     {
-        return $this->morphedByMany(Connector::class, 'taggable');
+        return $this->morphedByMany(Connector::class, 'taggable')->withPivot(['is_primary']);
     }
 }

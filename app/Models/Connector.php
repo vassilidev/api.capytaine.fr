@@ -23,6 +23,7 @@ class Connector extends Model
     protected $fillable = [
         'name',
         'color',
+        'description',
     ];
 
     public function events(): MorphMany
@@ -30,9 +31,14 @@ class Connector extends Model
         return $this->morphMany(Event::class, 'eventable');
     }
 
-    public function calendars(): MorphMany
+    public function calendars(): MorphToMany
     {
-        return $this->morphMany(Calendar::class, 'calendarable');
+        return $this->morphedByMany(Calendar::class, 'connectorable');
+    }
+
+    public function users(): MorphToMany
+    {
+        return $this->morphedByMany(User::class, 'connectorable');
     }
 
     public function tags(): MorphToMany

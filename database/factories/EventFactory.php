@@ -29,7 +29,7 @@ class EventFactory extends Factory
         $type = fake()->randomElement([Calendar::class, Connector::class]);
 
         return [
-            'name'           => fake()->realText(30),
+            'name'           => fake()->realText(100),
             'start_at'       => Carbon::parse($startAt)->startOfDay(),
             'end_at'         => Carbon::parse($startAt)->endOfDay(),
             'is_all_day'     => $isOneDay,
