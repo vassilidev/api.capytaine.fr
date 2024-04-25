@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth:sanctum'])->get('/user', function (Request $request) {
     return $request->user();
-})->withoutMiddleware(HandleCors::class);
+});
 
 Route::group(['prefix' => 'v1', 'middleware' => ['auth:sanctum']], static function () {
     Route::apiResource('calendars', CalendarController::class);
@@ -23,4 +23,4 @@ Route::group(['prefix' => 'v1', 'middleware' => ['auth:sanctum']], static functi
     Route::post('users/connectors/toggle', [UserConnectorController::class, 'toggle']);
 
     Route::apiResource('tags', TagController::class)->only(['index', 'show']);
-})->withoutMiddleware(HandleCors::class);
+});

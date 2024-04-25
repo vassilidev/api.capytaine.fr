@@ -2,19 +2,15 @@
 
 return [
 
-    'paths' => ['*'],
+    'paths' => ['api/*'],
 
-    'allowed_methods' => ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    'allowed_methods' => ['*'],
 
-    'allowed_origins' => [
-        env('FRONTEND_URL', 'http://localhost:3000'),
-        'https://capytaine.vercel.app',
-        'https://capytaine-scrapers.vercel.app',
-    ],
+    'allowed_origins' => ['*'],
 
     'allowed_origins_patterns' => [],
 
-    'allowed_headers' => ['Content-Type', 'Authorization'],
+    'allowed_headers' => ['*'],
 
     'exposed_headers' => [],
 
