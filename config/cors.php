@@ -2,7 +2,7 @@
 
 return [
 
-    'paths' => ['*'],
+    'paths' => ['*', '/login', '/csrf-cookie'],
 
     'allowed_methods' => ['*'],
 
