@@ -21,8 +21,6 @@ class ConnectorResource extends Resource
 
     protected static ?string $model = Connector::class;
 
-    protected static ?string $label = 'Capys';
-
     protected static ?string $navigationIcon = 'heroicon-o-command-line';
 
     public static function form(Form $form): Form

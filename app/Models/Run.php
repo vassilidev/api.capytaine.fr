@@ -8,19 +8,25 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Extraction extends Model
+class Run extends Model
 {
     use HasUuids,
         SoftDeletes;
 
     protected $fillable = [
-        'name',
-        'source',
-        'scraper_id'
+        'scraper_id',
+        'status',
+        'response',
+        'request',
+        'started_at',
+        'ended_at'
     ];
 
-    protected $withCount = [
-        'results',
+    protected $casts = [
+        'response'   => 'array',
+        'request'    => 'array',
+        'started_at' => 'datetime',
+        'ended_at'   => 'datetime'
     ];
 
     public function scraper(): BelongsTo
@@ -28,8 +34,8 @@ class Extraction extends Model
         return $this->belongsTo(Scraper::class);
     }
 
-    public function results(): HasMany
+    public function extractions(): HasMany
     {
-        return $this->hasMany(Result::class);
+        return $this->hasMany(Extraction::class);
     }
 }

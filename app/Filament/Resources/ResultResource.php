@@ -27,6 +27,11 @@ class ResultResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-circle-stack';
 
+    public static function canCreate(): bool
+    {
+        return false;
+    }
+
     public static function form(Form $form): Form
     {
         return $form
@@ -39,7 +44,13 @@ class ResultResource extends Resource
                     ->columnSpanFull(),
                 Forms\Components\Toggle::make('is_valid'),
                 AceEditor::make('data')
-                    ->formatStateUsing(fn(?Result $record) => json_encode(json_decode($record->getRawOriginal('data'), false, 512, JSON_THROW_ON_ERROR), JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT))
+                    ->formatStateUsing(function (?Result $record) {
+                        if ($record === null) {
+                            return null;
+                        }
+
+                        return json_encode(json_decode($record->getRawOriginal('data'), false, 512, JSON_THROW_ON_ERROR), JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT);
+                    })
                     ->mode('json')
                     ->json()
                     ->columnSpanFull()
@@ -99,9 +110,8 @@ class ResultResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListResults::route('/'),
-            'create' => Pages\CreateResult::route('/create'),
-            'edit' => Pages\EditResult::route('/{record}/edit'),
+            'index'  => Pages\ListResults::route('/'),
+            'edit'   => Pages\EditResult::route('/{record}/edit'),
         ];
     }
 

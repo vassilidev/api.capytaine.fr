@@ -1,7 +1,7 @@
 <?php
 
+use App\Enums\Scraper\Method;
 use App\Models\Connector;
-use App\Models\Scraper;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -12,15 +12,19 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::create('extractions', static function (Blueprint $table) {
+        Schema::create('scrapers', static function (Blueprint $table) {
             $table->uuid('id')->index();
             $table->string('name');
-            $table->foreignIdFor(Scraper::class)
+            $table->foreignIdFor(Connector::class)
                 ->nullable()
                 ->constrained()
                 ->nullOnDelete()
                 ->cascadeOnUpdate();
-            $table->json('source');
+            $table->longText('description')->nullable();
+            $table->string('method')->default(Method::GET->value);
+            $table->string('type')->default(Method::GET->value);
+            $table->text('url');
+            $table->json('headers')->nullable();
             $table->timestamps();
             $table->softDeletes();
         });
@@ -31,6 +35,6 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::dropIfExists('extractions');
+        Schema::dropIfExists('scrapers');
     }
 };

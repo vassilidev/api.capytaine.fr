@@ -1,6 +1,6 @@
 <?php
 
-use App\Models\Connector;
+use App\Enums\Run\Status;
 use App\Models\Scraper;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -12,15 +12,17 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::create('extractions', static function (Blueprint $table) {
+        Schema::create('runs', static function (Blueprint $table) {
             $table->uuid('id')->index();
-            $table->string('name');
             $table->foreignIdFor(Scraper::class)
-                ->nullable()
                 ->constrained()
-                ->nullOnDelete()
+                ->cascadeOnDelete()
                 ->cascadeOnUpdate();
-            $table->json('source');
+            $table->string('status')->default(Status::PENDING->value);
+            $table->json('request')->nullable();
+            $table->json('response')->nullable();
+            $table->timestamp('started_at')->nullable();
+            $table->timestamp('ended_at')->nullable();
             $table->timestamps();
             $table->softDeletes();
         });
@@ -31,6 +33,6 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::dropIfExists('extractions');
+        Schema::dropIfExists('runs');
     }
 };

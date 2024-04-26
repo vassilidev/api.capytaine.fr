@@ -2,10 +2,10 @@
 
 namespace App\Filament\Resources;
 
-use App\Actions\PublishExtractionResults;
-use App\Filament\Resources\ExtractionResource\Pages;
-use App\Filament\Resources\ExtractionResource\RelationManagers;
-use App\Models\Extraction;
+use App\Enums\Scraper\Method;
+use App\Enums\Scraper\Type;
+use App\Filament\Resources\ScraperResource\Pages;
+use App\Models\Scraper;
 use App\Traits\Filament\WithCountBadge;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -16,20 +16,15 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Riodwanto\FilamentAceEditor\AceEditor;
 
-class ExtractionResource extends Resource
+class ScraperResource extends Resource
 {
     use WithCountBadge;
 
     protected static ?string $navigationGroup = 'Data';
 
-    protected static ?string $model = Extraction::class;
+    protected static ?string $model = Scraper::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-command-line';
-
-    public static function canCreate(): bool
-    {
-        return false;
-    }
+    protected static ?string $navigationIcon = 'heroicon-o-cloud';
 
     public static function form(Form $form): Form
     {
@@ -38,25 +33,31 @@ class ExtractionResource extends Resource
                 Forms\Components\TextInput::make('name')
                     ->required()
                     ->maxLength(255),
-                Forms\Components\Select::make('scraper_id')
-                    ->relationship('scraper', 'name')
+                Forms\Components\Select::make('connector_id')
+                    ->relationship('connector', 'name')
                     ->searchable()
+                    ->required()
                     ->preload(),
-                AceEditor::make('source')
-                    ->formatStateUsing(function (?Extraction $record) {
-                        if ($record === null) {
-                            return null;
-                        }
-
-                        return json_encode(json_decode($record->getRawOriginal('source'), false, 512, JSON_THROW_ON_ERROR), JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT);
-                    })
-                    ->mode('json')
+                Forms\Components\Textarea::make('description')
+                    ->columnSpanFull(),
+                Forms\Components\Select::make('method')
+                    ->options(Method::class)
+                    ->required()
+                    ->default(Method::GET),
+                Forms\Components\Select::make('type')
+                    ->options(Type::class)
+                    ->required()
+                    ->default(Type::WEBHOOK),
+                Forms\Components\TextInput::make('url')
+                    ->url()
+                    ->columnSpanFull()
+                    ->required(),
+                AceEditor::make('headers')
                     ->json()
                     ->columnSpanFull()
                     ->autosize()
                     ->theme('github')
-                    ->darkTheme('dracula')
-                    ->required(),
+                    ->darkTheme('dracula'),
             ]);
     }
 
@@ -70,17 +71,21 @@ class ExtractionResource extends Resource
                     ->searchable(),
                 Tables\Columns\TextColumn::make('name')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('scraper.name')
+                Tables\Columns\TextColumn::make('connector.name')
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('method')
+                    ->badge()
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('type')
+                    ->badge()
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('extractions_count')
+                    ->badge()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
-                    ->toggleable(),
-                Tables\Columns\TextColumn::make('results_count')
-                    ->label('Results')
-                    ->badge()
-                    ->sortable()
-                    ->toggleable(),
+                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('updated_at')
                     ->dateTime()
                     ->sortable()
@@ -95,11 +100,6 @@ class ExtractionResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
-                Tables\Actions\Action::make('Intégrer')
-                    ->action(fn(Extraction $extraction) => app(PublishExtractionResults::class)->execute($extraction))
-                    ->icon('heroicon-o-check')
-                    ->button()
-                    ->requiresConfirmation(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -113,15 +113,16 @@ class ExtractionResource extends Resource
     public static function getRelations(): array
     {
         return [
-            RelationManagers\ResultsRelationManager::class,
+            //
         ];
     }
 
     public static function getPages(): array
     {
         return [
-            'index'  => Pages\ListExtractions::route('/'),
-            'edit'   => Pages\EditExtraction::route('/{record}/edit'),
+            'index'  => Pages\ListScrapers::route('/'),
+            'create' => Pages\CreateScraper::route('/create'),
+            'edit'   => Pages\EditScraper::route('/{record}/edit'),
         ];
     }
 
