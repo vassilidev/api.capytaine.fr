@@ -20,6 +20,10 @@ class DatabaseSeeder extends Seeder
             ConnectorSeeder::class,
             CalendarSeeder::class,
             EventSeeder::class,
+
+            ScraperSeeder::class,
+            RunSeeder::class,
+            ExtractionSeeder::class,
         ]);
     }
 }

@@ -30,6 +30,7 @@ class EventFactory extends Factory
 
         return [
             'name'           => fake()->realText(100),
+            'description'    => fake()->paragraphs(asText: true),
             'start_at'       => Carbon::parse($startAt)->startOfDay(),
             'end_at'         => Carbon::parse($startAt)->endOfDay(),
             'is_all_day'     => $isOneDay,

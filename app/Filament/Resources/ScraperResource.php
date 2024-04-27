@@ -5,6 +5,8 @@ namespace App\Filament\Resources;
 use App\Enums\Scraper\Method;
 use App\Enums\Scraper\Type;
 use App\Filament\Resources\ScraperResource\Pages;
+use App\Filament\Resources\ScraperResource\RelationManagers\ExtractionsRelationManager;
+use App\Filament\Resources\ScraperResource\RelationManagers\RunsRelationManager;
 use App\Models\Scraper;
 use App\Traits\Filament\WithCountBadge;
 use Filament\Forms;
@@ -42,17 +44,20 @@ class ScraperResource extends Resource
                     ->columnSpanFull(),
                 Forms\Components\Select::make('method')
                     ->options(Method::class)
+                    ->searchable()
                     ->required()
                     ->default(Method::GET),
                 Forms\Components\Select::make('type')
                     ->options(Type::class)
                     ->required()
+                    ->searchable()
                     ->default(Type::WEBHOOK),
                 Forms\Components\TextInput::make('url')
                     ->url()
                     ->columnSpanFull()
                     ->required(),
                 AceEditor::make('headers')
+                    ->formatStateUsing(fn(?Scraper $record) => $record ? prettyJson($record->headers) : null)
                     ->json()
                     ->columnSpanFull()
                     ->autosize()
@@ -73,13 +78,21 @@ class ScraperResource extends Resource
                     ->searchable(),
                 Tables\Columns\TextColumn::make('connector.name')
                     ->searchable(),
+                Tables\Columns\TextColumn::make('runs_count')
+                    ->toggleable()
+                    ->sortable()
+                    ->badge()
+                    ->counts('runs'),
+                Tables\Columns\TextColumn::make('extractions_count')
+                    ->toggleable()
+                    ->sortable()
+                    ->badge()
+                    ->counts('extractions'),
                 Tables\Columns\TextColumn::make('method')
+                    ->color(fn(Scraper $record) => $record->method->color())
                     ->badge()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('type')
-                    ->badge()
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('extractions_count')
                     ->badge()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('created_at')
@@ -99,7 +112,14 @@ class ScraperResource extends Resource
                 Tables\Filters\TrashedFilter::make(),
             ])
             ->actions([
+                Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\Action::make('Run')
+                    ->button()
+                    ->icon('heroicon-o-play')
+                    ->requiresConfirmation()
+                    ->color('info')
+                    ->action(fn(Scraper $scraper) => $scraper->run()),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -107,13 +127,15 @@ class ScraperResource extends Resource
                     Tables\Actions\ForceDeleteBulkAction::make(),
                     Tables\Actions\RestoreBulkAction::make(),
                 ]),
-            ]);
+            ])
+            ->defaultSort('created_at', 'desc');
     }
 
     public static function getRelations(): array
     {
         return [
-            //
+            RunsRelationManager::make(),
+            ExtractionsRelationManager::make(),
         ];
     }
 
@@ -122,7 +144,7 @@ class ScraperResource extends Resource
         return [
             'index'  => Pages\ListScrapers::route('/'),
             'create' => Pages\CreateScraper::route('/create'),
-            'edit'   => Pages\EditScraper::route('/{record}/edit'),
+            'view'   => Pages\ViewScraper::route('/{record}'),
         ];
     }
 

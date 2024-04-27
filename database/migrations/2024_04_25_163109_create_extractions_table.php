@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Connector;
+use App\Models\Run;
 use App\Models\Scraper;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -14,13 +15,11 @@ return new class extends Migration {
     {
         Schema::create('extractions', static function (Blueprint $table) {
             $table->uuid('id')->index();
-            $table->string('name');
-            $table->foreignIdFor(Scraper::class)
-                ->nullable()
+            $table->foreignIdFor(Run::class)
                 ->constrained()
-                ->nullOnDelete()
+                ->cascadeOnDelete()
                 ->cascadeOnUpdate();
-            $table->json('source');
+            $table->json('data');
             $table->timestamps();
             $table->softDeletes();
         });

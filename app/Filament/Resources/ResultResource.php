@@ -3,7 +3,6 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\ResultResource\Pages;
-use App\Filament\Resources\ResultResource\RelationManagers;
 use App\Models\Result;
 use App\Traits\Filament\WithCountBadge;
 use Filament\Forms;
@@ -12,6 +11,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Riodwanto\FilamentAceEditor\AceEditor;
 
@@ -36,21 +36,11 @@ class ResultResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Select::make('extraction_id')
-                    ->relationship('extraction', 'name')
-                    ->searchable()
-                    ->preload()
-                    ->required()
-                    ->columnSpanFull(),
-                Forms\Components\Toggle::make('is_valid'),
+                Forms\Components\TextInput::make('extraction_id')
+                    ->disabled()
+                    ->readOnly(),
                 AceEditor::make('data')
-                    ->formatStateUsing(function (?Result $record) {
-                        if ($record === null) {
-                            return null;
-                        }
-
-                        return json_encode(json_decode($record->getRawOriginal('data'), false, 512, JSON_THROW_ON_ERROR), JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT);
-                    })
+                    ->formatStateUsing(fn(Result $record) => prettyJson($record->data))
                     ->mode('json')
                     ->json()
                     ->columnSpanFull()
@@ -58,6 +48,7 @@ class ResultResource extends Resource
                     ->theme('github')
                     ->darkTheme('dracula')
                     ->required(),
+                Forms\Components\Toggle::make('is_valid'),
             ]);
     }
 
@@ -69,9 +60,20 @@ class ResultResource extends Resource
                     ->label('ID')
                     ->toggleable(isToggledHiddenByDefault: true)
                     ->searchable(),
-                Tables\Columns\TextColumn::make('extraction.name')
+                Tables\Columns\TextColumn::make('extraction_id')
+                    ->toggleable(isToggledHiddenByDefault: true)
                     ->searchable(),
+                Tables\Columns\TextColumn::make('data.name')
+                    ->label('Event')
+                    ->default(fn(Result $record) => $record->id)
+                    ->searchable()
+                    ->sortable(),
                 Tables\Columns\ToggleColumn::make('is_valid'),
+                Tables\Columns\TextColumn::make('data.start_at')
+                    ->label('Date')
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
@@ -92,12 +94,17 @@ class ResultResource extends Resource
                 Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([
+                Tables\Actions\BulkAction::make('Validate')
+                    ->requiresConfirmation()
+                    ->color('success')
+                    ->action(fn(Collection $records) => $records->each->validate()),
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
                     Tables\Actions\ForceDeleteBulkAction::make(),
                     Tables\Actions\RestoreBulkAction::make(),
                 ]),
-            ]);
+            ])
+            ->defaultSort('created_at', 'desc');
     }
 
     public static function getRelations(): array
@@ -110,8 +117,7 @@ class ResultResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index'  => Pages\ListResults::route('/'),
-            'edit'   => Pages\EditResult::route('/{record}/edit'),
+            'index' => Pages\ListResults::route('/'),
         ];
     }
 

@@ -15,6 +15,7 @@ return new class extends Migration {
         Schema::create('events', static function (Blueprint $table) {
             $table->uuid('id');
             $table->string('name');
+            $table->text('description')->nullable();
             $table->datetime('start_at');
             $table->datetime('end_at');
             $table->boolean('is_all_day')->default(true);

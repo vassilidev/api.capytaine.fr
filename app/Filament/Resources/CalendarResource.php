@@ -76,7 +76,8 @@ class CalendarResource extends Resource
                     Tables\Actions\ForceDeleteBulkAction::make(),
                     Tables\Actions\RestoreBulkAction::make(),
                 ]),
-            ]);
+            ])
+            ->defaultSort('created_at', 'desc');
     }
 
     public static function getRelations(): array
@@ -90,9 +91,9 @@ class CalendarResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListCalendars::route('/'),
+            'index'  => Pages\ListCalendars::route('/'),
             'create' => Pages\CreateCalendar::route('/create'),
-            'edit' => Pages\EditCalendar::route('/{record}/edit'),
+            'edit'   => Pages\EditCalendar::route('/{record}/edit'),
         ];
     }
 

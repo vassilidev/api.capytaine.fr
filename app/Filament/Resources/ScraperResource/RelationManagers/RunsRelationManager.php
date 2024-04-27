@@ -1,52 +1,42 @@
 <?php
 
-namespace App\Filament\Resources;
+namespace App\Filament\Resources\ScraperResource\RelationManagers;
 
 use App\Enums\Run\Status;
-use App\Filament\Resources\RunResource\Pages;
-use App\Filament\Resources\RunResource\RelationManagers\ResultsRelationManager;
+use App\Filament\Resources\RunResource;
 use App\Models\Run;
-use App\Traits\Filament\WithCountBadge;
 use Filament\Forms;
 use Filament\Forms\Form;
-use Filament\Resources\Resource;
+use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Riodwanto\FilamentAceEditor\AceEditor;
 
-class RunResource extends Resource
+class RunsRelationManager extends RelationManager
 {
-    use WithCountBadge;
+    protected static string $relationship = 'runs';
 
-    protected static ?string $navigationGroup = 'Data';
-
-    protected static ?string $model = Run::class;
-
-    protected static ?string $navigationIcon = 'heroicon-o-rocket-launch';
-
-    public static function canCreate(): bool
+    public function isReadOnly(): bool
     {
         return false;
     }
 
-    public static function canEdit(Model $record): bool
+    protected function canCreate(): bool
     {
-        return false;
+        return RunResource::canCreate();
     }
 
-    public static function form(Form $form): Form
+
+    public function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\Select::make('scraper_id')
-                    ->relationship('scraper', 'name')
-                    ->required(),
                 Forms\Components\Select::make('status')
                     ->required()
                     ->searchable()
+                    ->columnSpanFull()
                     ->options(Status::class)
                     ->default('pending'),
                 AceEditor::make('request')
@@ -64,15 +54,14 @@ class RunResource extends Resource
             ]);
     }
 
-    public static function table(Table $table): Table
+    public function table(Table $table): Table
     {
         return $table
+            ->recordTitleAttribute('id')
             ->columns([
                 Tables\Columns\TextColumn::make('id')
                     ->label('ID')
                     ->toggleable(isToggledHiddenByDefault: true)
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('scraper.name')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('status')
                     ->badge()
@@ -107,10 +96,14 @@ class RunResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                Tables\Filters\TrashedFilter::make(),
+                //
+            ])
+            ->headerActions([
+                Tables\Actions\CreateAction::make(),
             ])
             ->actions([
-                Tables\Actions\ViewAction::make(),
+                Tables\Actions\ViewAction::make()
+                    ->url(fn(Run $record) => RunResource::getUrl('view', ['record' => $record])),
                 Tables\Actions\Action::make('Abort')
                     ->visible(fn(Run $run) => $run->canBeAbort())
                     ->button()
@@ -118,39 +111,12 @@ class RunResource extends Resource
                     ->requiresConfirmation()
                     ->icon('heroicon-o-no-symbol')
                     ->action(fn(Run $run) => $run->abort()),
-                Tables\Actions\RestoreAction::make(),
+                Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
-                    Tables\Actions\ForceDeleteBulkAction::make(),
-                    Tables\Actions\RestoreBulkAction::make(),
                 ]),
-            ])
-            ->defaultSort('created_at', 'desc');
-    }
-
-    public static function getRelations(): array
-    {
-        return [
-            ResultsRelationManager::make(),
-        ];
-    }
-
-    public static function getPages(): array
-    {
-        return [
-            'view'  => Pages\ViewRun::route('/{record}'),
-            'index' => Pages\ListRuns::route('/'),
-            'edit'  => Pages\EditRun::route('/{record}/edit'),
-        ];
-    }
-
-    public static function getEloquentQuery(): Builder
-    {
-        return parent::getEloquentQuery()
-            ->withoutGlobalScopes([
-                SoftDeletingScope::class,
             ]);
     }
 }

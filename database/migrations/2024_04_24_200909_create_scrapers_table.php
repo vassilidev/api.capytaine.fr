@@ -16,9 +16,8 @@ return new class extends Migration {
             $table->uuid('id')->index();
             $table->string('name');
             $table->foreignIdFor(Connector::class)
-                ->nullable()
                 ->constrained()
-                ->nullOnDelete()
+                ->cascadeOnDelete()
                 ->cascadeOnUpdate();
             $table->longText('description')->nullable();
             $table->string('method')->default(Method::GET->value);

@@ -1,63 +1,50 @@
 <?php
 
-namespace App\Filament\Resources;
+namespace App\Filament\Resources\ScraperResource\RelationManagers;
 
 use App\Actions\PublishExtractionResults;
-use App\Filament\Resources\ExtractionResource\Pages;
-use App\Filament\Resources\ExtractionResource\RelationManagers;
+use App\Filament\Resources\ExtractionResource;
 use App\Models\Extraction;
-use App\Traits\Filament\WithCountBadge;
 use Filament\Forms;
 use Filament\Forms\Form;
-use Filament\Resources\Resource;
+use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
-use Riodwanto\FilamentAceEditor\AceEditor;
 
-class ExtractionResource extends Resource
+class ExtractionsRelationManager extends RelationManager
 {
-    use WithCountBadge;
+    protected static string $relationship = 'extractions';
 
-    protected static ?string $navigationGroup = 'Data';
-
-    protected static ?string $model = Extraction::class;
-
-    protected static ?string $navigationIcon = 'heroicon-o-command-line';
-
-    public static function canCreate(): bool
+    public function isReadOnly(): bool
     {
         return false;
     }
 
-    public static function canEdit(Model $record): bool
+    protected function canEdit(Model $record): bool
     {
-        return false;
+        return ExtractionResource::canEdit($record);
     }
 
-    public static function form(Form $form): Form
+    protected function canCreate(): bool
+    {
+        return ExtractionResource::canCreate();
+    }
+
+    public function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('run_id')
-                    ->columnSpanFull(),
-                AceEditor::make('data')
-                    ->formatStateUsing(fn(Extraction $record) => prettyJson($record->data))
-                    ->mode('json')
-                    ->json()
-                    ->columnSpanFull()
-                    ->autosize()
-                    ->theme('github')
-                    ->darkTheme('dracula')
-                    ->required(),
+                Forms\Components\TextInput::make('id')
+                    ->required()
+                    ->maxLength(255),
             ]);
     }
 
-    public static function table(Table $table): Table
+    public function table(Table $table): Table
     {
         return $table
+            ->recordTitleAttribute('id')
             ->columns([
                 Tables\Columns\TextColumn::make('id')
                     ->label('ID')
@@ -85,10 +72,14 @@ class ExtractionResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                Tables\Filters\TrashedFilter::make(),
+                //
+            ])
+            ->headerActions([
+                Tables\Actions\CreateAction::make(),
             ])
             ->actions([
-                Tables\Actions\ViewAction::make(),
+                Tables\Actions\ViewAction::make()
+                    ->url(fn(Extraction $record) => ExtractionResource::getUrl('view', ['record' => $record])),
                 Tables\Actions\Action::make('Reset Results')
                     ->icon('heroicon-o-arrow-path')
                     ->action(fn(Extraction $record) => $record->resetResults(withNotification: true))
@@ -101,37 +92,12 @@ class ExtractionResource extends Resource
                     ->color('success')
                     ->button()
                     ->requiresConfirmation(),
+                Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
-                    Tables\Actions\ForceDeleteBulkAction::make(),
-                    Tables\Actions\RestoreBulkAction::make(),
                 ]),
-            ])
-            ->defaultSort('created_at', 'desc');
-    }
-
-    public static function getRelations(): array
-    {
-        return [
-            RelationManagers\ResultsRelationManager::make(),
-        ];
-    }
-
-    public static function getPages(): array
-    {
-        return [
-            'index' => Pages\ListExtractions::route('/'),
-            'view'  => Pages\ViewExtraction::route('/{record}'),
-        ];
-    }
-
-    public static function getEloquentQuery(): Builder
-    {
-        return parent::getEloquentQuery()
-            ->withoutGlobalScopes([
-                SoftDeletingScope::class,
             ]);
     }
 }

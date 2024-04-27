@@ -19,6 +19,7 @@ class Event extends Model
 
     protected $fillable = [
         'name',
+        'description',
         'start_at',
         'end_at',
         'is_all_day',
@@ -41,11 +42,11 @@ class Event extends Model
     {
         $typeParams = [
             Connector::class => [
-                'name' => 'name',
+                'name'  => 'name',
                 'label' => 'Connector',
             ],
-            Calendar::class => [
-                'name' => 'name',
+            Calendar::class  => [
+                'name'  => 'name',
                 'label' => 'Calendar',
             ],
         ];
