@@ -7,14 +7,15 @@ use App\Filament\Resources\ExtractionResource\Pages;
 use App\Filament\Resources\ExtractionResource\RelationManagers;
 use App\Models\Extraction;
 use App\Traits\Filament\WithCountBadge;
-use Filament\Actions\Action;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Riodwanto\FilamentAceEditor\AceEditor;
 
 class ExtractionResource extends Resource
 {
@@ -26,19 +27,30 @@ class ExtractionResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-command-line';
 
+    public static function canCreate(): bool
+    {
+        return false;
+    }
+
+    public static function canEdit(Model $record): bool
+    {
+        return false;
+    }
+
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('name')
-                    ->required()
-                    ->maxLength(255),
-                Forms\Components\Select::make('connector_id')
-                    ->relationship('connector', 'name')
-                    ->searchable()
-                    ->preload(),
-                Forms\Components\TextInput::make('source')
+                Forms\Components\TextInput::make('run_id')
+                    ->columnSpanFull(),
+                AceEditor::make('data')
+                    ->formatStateUsing(fn(Extraction $record) => prettyJson($record->data))
+                    ->mode('json')
                     ->json()
+                    ->columnSpanFull()
+                    ->autosize()
+                    ->theme('github')
+                    ->darkTheme('dracula')
                     ->required(),
             ]);
     }
@@ -51,9 +63,7 @@ class ExtractionResource extends Resource
                     ->label('ID')
                     ->toggleable(isToggledHiddenByDefault: true)
                     ->searchable(),
-                Tables\Columns\TextColumn::make('name')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('connector.name')
+                Tables\Columns\TextColumn::make('run.id')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
@@ -61,6 +71,7 @@ class ExtractionResource extends Resource
                     ->toggleable(),
                 Tables\Columns\TextColumn::make('results_count')
                     ->label('Results')
+                    ->counts('results')
                     ->badge()
                     ->sortable()
                     ->toggleable(),
@@ -77,10 +88,17 @@ class ExtractionResource extends Resource
                 Tables\Filters\TrashedFilter::make(),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\Action::make('Intégrer')
-                    ->action(fn(Extraction $extraction) => app(PublishExtractionResults::class)->execute($extraction))
-                    ->icon('heroicon-o-check')
+                Tables\Actions\ViewAction::make(),
+                Tables\Actions\Action::make('Reset Results')
+                    ->icon('heroicon-o-arrow-path')
+                    ->action(fn(Extraction $record) => $record->resetResults(withNotification: true))
+                    ->button()
+                    ->color('danger')
+                    ->requiresConfirmation(),
+                Tables\Actions\Action::make('Publish')
+                    ->action(fn(Extraction $record) => $record->publish(withNotification: true))
+                    ->icon('heroicon-o-paper-airplane')
+                    ->color('success')
                     ->button()
                     ->requiresConfirmation(),
             ])
@@ -90,22 +108,22 @@ class ExtractionResource extends Resource
                     Tables\Actions\ForceDeleteBulkAction::make(),
                     Tables\Actions\RestoreBulkAction::make(),
                 ]),
-            ]);
+            ])
+            ->defaultSort('created_at', 'desc');
     }
 
     public static function getRelations(): array
     {
         return [
-            RelationManagers\ResultsRelationManager::class,
+            RelationManagers\ResultsRelationManager::make(),
         ];
     }
 
     public static function getPages(): array
     {
         return [
-            'index'  => Pages\ListExtractions::route('/'),
-            'create' => Pages\CreateExtraction::route('/create'),
-            'edit'   => Pages\EditExtraction::route('/{record}/edit'),
+            'index' => Pages\ListExtractions::route('/'),
+            'view'  => Pages\ViewExtraction::route('/{record}'),
         ];
     }
 

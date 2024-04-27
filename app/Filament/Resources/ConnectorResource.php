@@ -21,8 +21,6 @@ class ConnectorResource extends Resource
 
     protected static ?string $model = Connector::class;
 
-    protected static ?string $label = 'Capys';
-
     protected static ?string $navigationIcon = 'heroicon-o-command-line';
 
     public static function form(Form $form): Form
@@ -80,7 +78,8 @@ class ConnectorResource extends Resource
                     Tables\Actions\ForceDeleteBulkAction::make(),
                     Tables\Actions\RestoreBulkAction::make(),
                 ]),
-            ]);
+            ])
+            ->defaultSort('created_at', 'desc');
     }
 
     public static function getRelations(): array

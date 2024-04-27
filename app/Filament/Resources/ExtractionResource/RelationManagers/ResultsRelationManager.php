@@ -8,20 +8,30 @@ use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Database\Eloquent\Collection;
 use Riodwanto\FilamentAceEditor\AceEditor;
 
 class ResultsRelationManager extends RelationManager
 {
     protected static string $relationship = 'results';
 
+    public function isReadOnly(): bool
+    {
+        return false;
+    }
+
     public function form(Form $form): Form
     {
         return $form
             ->schema([
+                Forms\Components\TextInput::make('id')
+                    ->disabled()
+                    ->readOnly(),
+                Forms\Components\TextInput::make('extraction_id')
+                    ->disabled()
+                    ->readOnly(),
                 AceEditor::make('data')
-                    ->formatStateUsing(fn(?Result $record) => json_encode(json_decode($record->getRawOriginal('data'), false, 512, JSON_THROW_ON_ERROR), JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT))
+                    ->formatStateUsing(fn(Result $record) => prettyJson($record->data))
                     ->mode('json')
                     ->json()
                     ->columnSpanFull()
@@ -38,10 +48,33 @@ class ResultsRelationManager extends RelationManager
         return $table
             ->recordTitleAttribute('id')
             ->columns([
-                Tables\Columns\TextColumn::make('id')->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('data'),
+                Tables\Columns\TextColumn::make('id')
+                    ->label('ID')
+                    ->toggleable(isToggledHiddenByDefault: true)
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('data.name')
+                    ->label('Event')
+                    ->default(fn(Result $record) => $record->id)
+                    ->searchable()
+                    ->sortable(),
                 Tables\Columns\ToggleColumn::make('is_valid'),
-                Tables\Columns\TextColumn::make('created_at')->dateTime(),
+                Tables\Columns\TextColumn::make('data.start_at')
+                    ->label('Date')
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(),
+                Tables\Columns\TextColumn::make('created_at')
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(),
+                Tables\Columns\TextColumn::make('updated_at')
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('deleted_at')
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 //
@@ -54,6 +87,10 @@ class ResultsRelationManager extends RelationManager
                 Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
+                Tables\Actions\BulkAction::make('Validate')
+                    ->requiresConfirmation()
+                    ->color('success')
+                    ->action(fn(Collection $records) => $records->each->validate()),
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),

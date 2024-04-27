@@ -32,6 +32,7 @@ class EventResource extends Resource
                 Forms\Components\TextInput::make('name')
                     ->required()
                     ->maxLength(255),
+                Forms\Components\Textarea::make('description')->columnSpanFull(),
                 MorphToSelect::make('eventable')
                     ->types([
                         MorphToSelect\Type::make(Calendar::class)
@@ -97,7 +98,8 @@ class EventResource extends Resource
                     Tables\Actions\ForceDeleteBulkAction::make(),
                     Tables\Actions\RestoreBulkAction::make(),
                 ]),
-            ]);
+            ])
+            ->defaultSort('created_at', 'desc');
     }
 
     public static function getRelations(): array

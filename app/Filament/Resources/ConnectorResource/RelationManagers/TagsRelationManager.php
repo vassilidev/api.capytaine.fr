@@ -21,7 +21,8 @@ class TagsRelationManager extends RelationManager
                 Forms\Components\TextInput::make('name')
                     ->required()
                     ->maxLength(255),
-                Tables\Columns\ToggleColumn::make('is_primary'),
+                Forms\Components\ColorPicker::make('color'),
+                Forms\Components\Toggle::make('is_primary'),
             ]);
     }
 
