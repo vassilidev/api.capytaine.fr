@@ -5,8 +5,8 @@ use App\Http\Controllers\Api\V1\CalendarEventController;
 use App\Http\Controllers\Api\V1\ConnectorController;
 use App\Http\Controllers\Api\V1\Scraper\Run\ResultController;
 use App\Http\Controllers\Api\V1\TagController;
+use App\Http\Controllers\Api\V1\User\Connector\SwipeController;
 use App\Http\Controllers\Api\V1\UserConnectorController;
-use Illuminate\Http\Middleware\HandleCors;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -25,6 +25,7 @@ Route::group([
         Route::apiResource('users.connectors', UserConnectorController::class)->only('index');
 
         Route::get('users/connectors', [UserConnectorController::class, 'indexAuth']);
+        Route::get('users/connectors/swipe', SwipeController::class);
         Route::post('users/connectors/toggle', [UserConnectorController::class, 'toggle']);
 
         Route::apiResource('tags', TagController::class)->only(['index', 'show']);

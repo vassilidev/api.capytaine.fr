@@ -32,7 +32,7 @@ class ConnectorFactory extends Factory
         ];
 
         return [
-            'name'        => fake()->unique()->jobTitle(),
+            'name'        => fake()->jobTitle(),
             'color'       => fake()->randomElement($colors),
             'description' => fake()->paragraph(),
         ];
