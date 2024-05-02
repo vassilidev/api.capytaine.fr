@@ -18,7 +18,7 @@ class SwipeController extends Controller
         $connectors = Connector::query()
             ->latest('created_at')
             ->whereNotIn('id', $request->user()->connectors->pluck('id'))
-            ->paginate(15);
+            ->paginate(50);
 
         return response()->json($connectors);
     }

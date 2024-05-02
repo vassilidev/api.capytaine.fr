@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\Run\Status;
+use Dyrynda\Database\Support\CascadeSoftDeletes;
 use Filament\Notifications\Notification;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -17,7 +18,10 @@ class Run extends Model
 {
     use HasUuids,
         HasFactory,
-        SoftDeletes;
+        SoftDeletes,
+        CascadeSoftDeletes;
+
+    protected array $cascadeDeletes = ['extraction'];
 
     protected $fillable = [
         'scraper_id',

@@ -6,7 +6,9 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
+        "dyrynda/laravel-cascade-soft-deletes": "^4.4",
         "filament/filament": "^3.2",
+        "laravel/cashier": "^15.3",
         "laravel/framework": "^11.0",
         "laravel/sanctum": "^4.0",
         "laravel/telescope": "^5.0",

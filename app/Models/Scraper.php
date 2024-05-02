@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Actions\Scraper\RunScraper;
 use App\Enums\Scraper\Method;
 use App\Enums\Scraper\Type;
+use Dyrynda\Database\Support\CascadeSoftDeletes;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -19,7 +20,10 @@ class Scraper extends Model
 {
     use HasUuids,
         HasFactory,
-        SoftDeletes;
+        SoftDeletes,
+        CascadeSoftDeletes;
+
+    protected array $cascadeDeletes = ['runs'];
 
     protected $fillable = [
         'name',

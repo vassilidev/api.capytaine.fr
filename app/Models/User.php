@@ -3,6 +3,8 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Filament\FilamentManager;
+use Filament\Models\Contracts\HasName;
 use Filament\Panel;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -13,10 +15,12 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Filament\Models\Contracts\HasAvatar;
 use Filament\Models\Contracts\FilamentUser;
+use Laravel\Cashier\Billable;
 
-class User extends Authenticatable implements FilamentUser, HasAvatar
+class User extends Authenticatable implements FilamentUser, HasAvatar, HasName
 {
     use HasUuids,
+        Billable,
         HasFactory,
         Notifiable,
         SoftDeletes;
@@ -34,6 +38,11 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
         'name',
         'email',
         'password',
+        'firstname',
+        'lastname',
+        'username',
+        'date_of_birth',
+        'phone',
     ];
 
     /**
@@ -56,6 +65,7 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
         return [
             'email_verified_at' => 'datetime',
             'password'          => 'hashed',
+            'date_of_birth'     => 'date',
         ];
     }
 
@@ -77,7 +87,7 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
     public function getAvatarAttribute(): string
     {
         $params = [
-            'seed' => $this->id,
+            'seed'            => $this->id,
             'backgroundColor' => 'FF79C6'
         ];
 
@@ -92,5 +102,10 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
     public function canAccessPanel(Panel $panel): bool
     {
         return true;
+    }
+
+    public function getFilamentName(): string
+    {
+        return "{$this->firstname} {$this->lastname}";
     }
 }

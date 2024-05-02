@@ -15,9 +15,9 @@ class CalendarEventController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Calendar $calendar): AnonymousResourceCollection
+    public function index(Request $request, Calendar $calendar): AnonymousResourceCollection
     {
-        $events = app(CalendarEventService::class)->getAllEventFromCalendar($calendar);
+        $events = app(CalendarEventService::class)->getAllEventFromCalendar($calendar, $request->all());
 
         return EventResource::collection($events);
     }

@@ -21,7 +21,7 @@ Route::group([
     Route::group(['middleware' => ['auth:sanctum']], static function () {
         Route::apiResource('calendars', CalendarController::class);
         Route::apiResource('connectors', ConnectorController::class);
-        Route::apiResource('calendars.events', CalendarEventController::class);
+        Route::apiResource('calendars.events', CalendarEventController::class)->withoutMiddleware('auth:sanctum');
         Route::apiResource('users.connectors', UserConnectorController::class)->only('index');
 
         Route::get('users/connectors', [UserConnectorController::class, 'indexAuth']);

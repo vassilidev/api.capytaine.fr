@@ -48,7 +48,7 @@ class CalendarResource extends Resource
                     ->searchable(),
                 Tables\Columns\TextColumn::make('name')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('user.name')
+                Tables\Columns\TextColumn::make('user.username')
                     ->numeric()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')

@@ -31,6 +31,9 @@ class ResultsRelationManager extends RelationManager
     {
         return $form
             ->schema([
+                Forms\Components\TextInput::make('extraction_id')
+                    ->disabled()
+                    ->readOnly(),
                 AceEditor::make('data')
                     ->formatStateUsing(fn(Result $record) => prettyJson($record->data))
                     ->mode('json')
@@ -49,7 +52,36 @@ class ResultsRelationManager extends RelationManager
         return $table
             ->recordTitleAttribute('id')
             ->columns([
-                Tables\Columns\TextColumn::make('id'),
+                Tables\Columns\TextColumn::make('id')
+                    ->label('ID')
+                    ->toggleable(isToggledHiddenByDefault: true)
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('extraction_id')
+                    ->toggleable(isToggledHiddenByDefault: true)
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('data.name')
+                    ->label('Event')
+                    ->default(fn(Result $record) => $record->id)
+                    ->searchable()
+                    ->sortable(),
+                Tables\Columns\ToggleColumn::make('is_valid'),
+                Tables\Columns\TextColumn::make('data.start_at')
+                    ->label('Date')
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(),
+                Tables\Columns\TextColumn::make('created_at')
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(),
+                Tables\Columns\TextColumn::make('updated_at')
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('deleted_at')
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 //

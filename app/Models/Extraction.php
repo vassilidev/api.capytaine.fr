@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Actions\Extraction\ResetResults;
 use App\Actions\PublishExtractionResults;
 use App\Observers\ExtractionObserver;
+use Dyrynda\Database\Support\CascadeSoftDeletes;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -18,7 +19,10 @@ class Extraction extends Model
 {
     use HasUuids,
         HasFactory,
-        SoftDeletes;
+        SoftDeletes,
+        CascadeSoftDeletes;
+
+    protected array $cascadeDeletes = ['results'];
 
     protected $fillable = [
         'run_id',

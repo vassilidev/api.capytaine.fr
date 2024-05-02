@@ -36,7 +36,6 @@ class RunScraper
     {
         $headers = (array)($scraper->headers ?? []);
 
-
         $httpClient = Http::withHeaders($headers + [
                 'X-Scraper-Id' => $scraper->id,
                 'X-Referer'    => config('app.url'),
@@ -49,6 +48,7 @@ class RunScraper
 
         return match ($scraper->type) {
             Type::WEBHOOK => $this->executeWebhook($httpClient, $scraper),
+            Type::MANUAL => $this->executeManual($httpClient, $scraper),
             default => throw new RuntimeException('Unsupported scraper type'),
         };
     }
@@ -109,6 +109,56 @@ class RunScraper
             ->title('Scraper is running...')
             ->send();
 
+        return true;
+    }
+
+    protected function executeManual(PendingRequest $httpClient, Scraper $scraper): bool
+    {
+        $httpClient->timeout(10);
+
+        $this->run->fill([
+            'status'  => Status::RUNNING,
+            'request' => [
+                'url'    => $scraper->url,
+                'method' => $scraper->method->value,
+                ...$httpClient->getOptions(),
+            ],
+        ])->save();
+
+        try {
+            $response = $httpClient->{$scraper->method->value}($scraper->url);
+
+            $this->run->end();
+
+            $events = $response->json('events', []);
+
+            $this->run->extraction()->create([
+                'data' => $events,
+            ]);
+
+            Notification::make()
+                ->success()
+                ->title(count($events) . ' events were extracted')
+                ->send();
+        } catch (ConnectionException $exception) {
+            Notification::make()
+                ->danger()
+                ->title('Error while running scraper')
+                ->send();
+
+            Log::error($exception->getMessage());
+
+            $this->run->update([
+                'status'   => Status::FAILED,
+                'response' => [
+                    'error' => $exception->getMessage(),
+                ],
+                'ended_at' => now(),
+            ]);
+
+            return false;
+        }
+        
         return true;
     }
 }

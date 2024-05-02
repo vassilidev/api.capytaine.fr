@@ -26,8 +26,8 @@ class EventSeeder extends Seeder
             ]);
         });
 
-        $start = now()->startOfMonth();
-        $end = now()->endOfMonth();
+        $start = now()->subMonth();
+        $end = now()->addMonth();
 
         $period = Carbon::parse($start)->toPeriod($end);
 
