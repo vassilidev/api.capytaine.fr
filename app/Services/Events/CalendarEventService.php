@@ -7,13 +7,22 @@ use App\Models\Connector;
 use App\Models\Event;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Database\Eloquent\Relations\MorphTo;
-use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Auth;
 
 class CalendarEventService
 {
     public function getAllEventFromCalendar(Calendar $calendar, array $params = []): Collection
     {
+        $plan = Auth::user()->currentSubscription?->type;
+
+        $maxDate = now()->addDay();
+
+        if ($plan) {
+            $nbrMaxDays = (int)(config()->get('plans.' . $plan . '.nbMaxDayEvent') ?? 7);
+
+            $maxDate = now()->addDays($nbrMaxDays);
+        }
+
         return Event::query()
             ->with('eventable')
             ->where(function (Builder $query) use ($calendar) {
@@ -25,15 +34,32 @@ class CalendarEventService
                         ->where('eventable_id', $calendar->id);
                 });
             })
-            ->when(isset($params['start_at']), function (Builder $query) use ($params) {
-                $query->where('events.start_at', '>=', $params['start_at']);
+            ->where(function (Builder $query) use ($maxDate, $params) {
+                $query->where(function (Builder $query) use ($maxDate) {
+                    $query
+                        ->where('events.eventable_type', Connector::class)
+                        ->where('events.start_at', '<=', $maxDate);
+                })->orWhere(function (Builder $query) use ($maxDate) {
+                    $query
+                        ->where('events.eventable_type', Calendar::class)
+                        ->where('events.start_at', '<=', $maxDate);
+                })->when(isset($params['start_at']), function (Builder $query) use ($params) {
+                    $query->where('events.start_at', '>=', $params['start_at']);
+                });
             })
-            ->when(isset($params['end_at']), function (Builder $query) use ($params) {
-                $query->where('events.end_at', '<=', $params['end_at']);
-            })
-            ->when(true, function ($query) {
-                logger($query->toSql(), $query->getBindings());
-            })
+            //->when(Auth::user()->subscribed('individual'), function (Builder $query) use ($maxDate, $params) {
+            //                $query->where(function (Builder $query) use ($maxDate) {
+            //                    $query
+            //                        ->where('events.eventable_type', Connector::class)
+            //                        ->where('events.start_at', '<=', $maxDate);
+            //                })->orWhere(function (Builder $query) use ($maxDate) {
+            //                    $query
+            //                        ->where('events.eventable_type', Calendar::class)
+            //                        ->where('events.start_at', '<=', $maxDate);
+            //                })->when(isset($params['start_at']), function (Builder $query) use ($params) {
+            //                    $query->where('events.start_at', '>=', $params['start_at']);
+            //                });
+            //            })
             ->get();
     }
 }

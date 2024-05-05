@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Models\Subscription;
 use Filament\Support\Colors\Color;
 use Filament\Support\Facades\FilamentColor;
 use Illuminate\Auth\Notifications\ResetPassword;
@@ -17,6 +18,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Cashier::calculateTaxes();
+        Cashier::useSubscriptionModel(Subscription::class);
 
         Model::shouldBeStrict(app()->isLocal());
 

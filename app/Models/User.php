@@ -3,18 +3,18 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Filament\FilamentManager;
+use Filament\Models\Contracts\FilamentUser;
+use Filament\Models\Contracts\HasAvatar;
 use Filament\Models\Contracts\HasName;
 use Filament\Panel;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Filament\Models\Contracts\HasAvatar;
-use Filament\Models\Contracts\FilamentUser;
 use Laravel\Cashier\Billable;
 
 class User extends Authenticatable implements FilamentUser, HasAvatar, HasName
@@ -26,7 +26,13 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, HasName
         SoftDeletes;
 
     protected $appends = [
-        'avatar'
+        'avatar',
+        'display_name',
+        'current_billing_plan',
+    ];
+
+    protected $withCount = [
+        'calendars',
     ];
 
     /**
@@ -43,6 +49,7 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, HasName
         'username',
         'date_of_birth',
         'phone',
+        'preferred_language'
     ];
 
     /**
@@ -67,6 +74,20 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, HasName
             'password'          => 'hashed',
             'date_of_birth'     => 'date',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::updated(static function (User $customer) {
+            if ($customer->hasStripeId()) {
+                $customer->syncStripeCustomerDetails();
+            }
+        });
+    }
+
+    public function currentSubscription(): HasOne
+    {
+        return $this->hasOne(Subscription::class)->active()->latestOfMany();
     }
 
     public function calendars(): HasMany
@@ -104,8 +125,23 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, HasName
         return true;
     }
 
-    public function getFilamentName(): string
+    public function getDisplayNameAttribute(): string
     {
         return "{$this->firstname} {$this->lastname}";
+    }
+
+    public function stripeName(): string
+    {
+        return $this->getDisplayNameAttribute();
+    }
+
+    public function getFilamentName(): string
+    {
+        return $this->getDisplayNameAttribute();
+    }
+
+    public function getCurrentBillingPlanAttribute()
+    {
+        return $this->subscriptions()->active()->first()?->type ?? null;
     }
 }
