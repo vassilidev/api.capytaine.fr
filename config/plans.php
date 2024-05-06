@@ -3,6 +3,6 @@
 return [
     'individual' => [
         'nbMaxCalendar' => 3,
-        'nbMaxDayEvent' => 14,
+        'nbMaxDayEvent' => 7,
     ],
 ];
