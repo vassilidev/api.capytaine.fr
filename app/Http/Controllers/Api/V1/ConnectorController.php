@@ -16,7 +16,7 @@ class ConnectorController extends Controller
     public function index(): AnonymousResourceCollection
     {
         $connectors = Connector::query()
-            ->withCount(['events', 'calendars'])
+            ->withCount(['events', 'calendars', 'tags'])
             ->when(request()->get('tags'), function (Builder $query) {
                 $query->whereHas('tags', function (Builder $q) {
                     $q->whereIn('id', request()->get('tags'));
@@ -28,7 +28,6 @@ class ConnectorController extends Controller
             ->when(request()->has('order_by'), function (Builder $query) {
                 $query->orderBy(request()->get('order_by'), request()->get('order', 'asc'));
             })
-            ->withCount(['tags', 'events'])
             ->get();
 
         return ConnectorResource::collection($connectors);

@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\SubscribeController;
+use App\Models\Source;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {

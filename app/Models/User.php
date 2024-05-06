@@ -16,14 +16,19 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Cashier\Billable;
+use Overtrue\LaravelLike\Traits\Liker;
+use Staudenmeir\EloquentHasManyDeep\HasManyDeep;
+use Staudenmeir\EloquentHasManyDeep\HasRelationships;
 
 class User extends Authenticatable implements FilamentUser, HasAvatar, HasName
 {
-    use HasUuids,
+    use Liker,
+        HasUuids,
         Billable,
         HasFactory,
         Notifiable,
-        SoftDeletes;
+        SoftDeletes,
+        HasRelationships;
 
     protected $appends = [
         'avatar',
@@ -100,9 +105,9 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, HasName
         return $this->morphToMany(Connector::class, 'connectorable')->using(Connectorable::class);
     }
 
-    public function tags(): MorphToMany
+    public function tags(): HasManyDeep
     {
-        return $this->morphToMany(Connector::class, 'taggable');
+        return $this->hasManyDeepFromRelations($this->connectors(), (new Connector())->tags())->distinct();
     }
 
     public function getAvatarAttribute(): string

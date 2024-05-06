@@ -6,15 +6,20 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
+        "ext-simplexml": "*",
+        "dg/rss-php": "^1.5",
         "dyrynda/laravel-cascade-soft-deletes": "^4.4",
         "filament/filament": "^3.2",
         "laravel/cashier": "^15.3",
         "laravel/framework": "^11.0",
+        "laravel/horizon": "^5.24",
         "laravel/sanctum": "^4.0",
         "laravel/telescope": "^5.0",
         "laravel/tinker": "^2.9",
         "opcodesio/log-viewer": "^3.8",
-        "riodwanto/filament-ace-editor": "^1.1"
+        "overtrue/laravel-like": "^5.3",
+        "riodwanto/filament-ace-editor": "^1.1",
+        "staudenmeir/eloquent-has-many-deep": "^1.7"
     },
     "require-dev": {
         "barryvdh/laravel-ide-helper": "^3.0",

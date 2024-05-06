@@ -4,6 +4,8 @@ use App\Http\Controllers\Api\V1\AuthUserController;
 use App\Http\Controllers\Api\V1\CalendarController;
 use App\Http\Controllers\Api\V1\CalendarEventController;
 use App\Http\Controllers\Api\V1\ConnectorController;
+use App\Http\Controllers\Api\V1\LikeController;
+use App\Http\Controllers\Api\V1\NewsController;
 use App\Http\Controllers\Api\V1\Scraper\Run\ResultController;
 use App\Http\Controllers\Api\V1\TagController;
 use App\Http\Controllers\Api\V1\User\Connector\BillingController;
@@ -22,6 +24,9 @@ Route::group([
         Route::apiResource('connectors', ConnectorController::class);
         Route::apiResource('calendars.events', CalendarEventController::class);
         Route::apiResource('users.connectors', UserConnectorController::class)->only('index');
+        Route::apiResource('news', NewsController::class);
+
+        Route::get('swipe/news', \App\Http\Controllers\Api\V1\News\SwipeController::class);
 
         Route::get('users/connectors', [UserConnectorController::class, 'indexAuth']);
         Route::get('users/connectors/swipe', SwipeController::class);
@@ -33,6 +38,11 @@ Route::group([
 
         Route::controller(AuthUserController::class)->group(static function () {
             Route::put('user', 'update');
+        });
+
+        Route::controller(LikeController::class)->group(static function () {
+            Route::post('like', 'store');
+            Route::delete('like', 'destroy');
         });
     });
 

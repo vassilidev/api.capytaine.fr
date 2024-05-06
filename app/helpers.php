@@ -75,3 +75,15 @@ function prettyJson(mixed $json): string
 
     return $result;
 }
+
+function extractContentFromHtml(?string $content): ?string
+{
+    if (empty($content)) {
+        return null;
+    }
+
+    $contentStripped = strip_tags($content);
+    $contentWithAccent = html_entity_decode($contentStripped);
+
+    return preg_replace('/\xc2\xa0/', ' ', $contentWithAccent);
+}
